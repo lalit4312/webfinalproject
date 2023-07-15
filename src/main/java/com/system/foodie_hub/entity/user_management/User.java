@@ -6,7 +6,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.management.relation.Role;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -41,12 +40,12 @@ public class User implements UserDetails {
     @Transient
     private String imageBase64;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        return null;
+//    }
 
-    //    @ManyToMany(fetch = FetchType.EAGER)
+        @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "wpms_users_roles",
             foreignKey = @ForeignKey(name = "FK_users_roles_userId"),
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
@@ -55,7 +54,12 @@ public class User implements UserDetails {
             uniqueConstraints = @UniqueConstraint(name = "UNIQUE_users_roles_userIdRoleId",
                     columnNames = {"user_id", "role_id"})
     )
+    private Collection<Role> roles;
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
+    }
     @Override
     public String getUsername() {
         return this.email;
